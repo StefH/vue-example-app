@@ -12,6 +12,8 @@ import 'quasar-extras/fontawesome';
 import Quasar from 'quasar';
 import Vue2Filters from 'vue2-filters';
 
+Vue.prototype.$appName = 'My App !!!';
+
 Vue.use(Quasar, {
   config: {},
 });
@@ -29,6 +31,9 @@ Vue.filter('ALLCAPS', (value) => {
 Vue.config.productionTip = false;
 
 new Vue({
+  beforeCreate() {
+    console.log(this.$appName);
+  },
   router,
   mixins: [Vue2Filters.mixin],
   render: h => h(App),
