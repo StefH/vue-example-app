@@ -4,6 +4,7 @@
     <q-color v-model="hexa" inline class="my-picker" />
     <q-color v-model="rgb" inline class="my-picker" />
     <q-color v-model="rgba" inline class="my-picker" />
+    <hello-world level="5"/>
   </div>
 </template>
 

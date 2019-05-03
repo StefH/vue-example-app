@@ -1,17 +1,23 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
-    <h2>{{ level }}</h2>
+    <h4>{{ msg }}</h4>
+    <h4>{{ level }}</h4>
+    <h4>{{ x }}</h4>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'HelloWorld',
+  name: 'hello-world',
   props: {
     msg: String,
     level: Number,
   },
+  computed: {
+    x() {
+      return `test : ${this.msg}_${this.level}`
+    }
+  }
 };
 </script>
 

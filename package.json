@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "core-js": "^2.6.5",
+    "lodash": "^4.17.11",
     "quasar": "^1.0.0-beta.18",
     "quasar-extras": "^2.0.4",
     "quasar-framework": "^0.17.0",
