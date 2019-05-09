@@ -33,10 +33,6 @@
             <q-item-side icon="info_outline"/>
             <q-item-main label="About"/>
           </q-item>
-          <q-item to="/color">
-            <q-item-side icon="info_outline"/>
-            <q-item-main label="Color"/>
-          </q-item>
           <q-item to="/generate">
             <q-item-side icon="info_outline"/>
             <q-item-main label="Generate"/>

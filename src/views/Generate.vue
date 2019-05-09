@@ -1,6 +1,8 @@
 <template>
   <q-page padding>
-    <p>Generate C# Classes and Interfaces</p>
+    <p>
+      <b>Generate C# Classes and Interfaces</b>
+    </p>
 
     <div class="row">
       <div class="col-2">
@@ -21,7 +23,6 @@
       <div class="col-4">
         <br>
         <br>
-        <br>
       </div>
     </div>
 
@@ -38,6 +39,7 @@
           hide-upload-progress
           url
           :upload-factory="uploadContracts"
+          @finish="uploadContractsFinish"
         />
       </div>
     </div>
@@ -53,14 +55,48 @@
 
     <div class="row">
       <div class="col-2">
-        <q-btn label="Generate" @click="OnClickGenerate"/>
+        <p class="caption">Namespace</p>
+      </div>
+      <div class="col-2">
+        <q-input v-model="namespace"/>
       </div>
     </div>
+
     <div class="row">
+      <div class="col-2">
+        <q-btn label="Generate" :disabled="busy" @click="OnClickGenerate"/>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-8">
+        <q-input
+          v-model="generatedInterfaceText"
+          type="textarea"
+          float-label="Generated C# Interface"
+          :max-height="100"
+          rows="5"
+        />
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-8">
+        <q-input
+          v-model="generatedServiceText"
+          type="textarea"
+          float-label="Generated C# Service"
+          :max-height="100"
+          rows="5"
+        />
+      </div>
+    </div>
+
+    <!-- <div class="row">
       <div class="col-2">
         <q-input type="text" v-model="progress" stack-label="Progress:" disable/>
       </div>
-    </div>
+    </div>-->
   </q-page>
 </template>
 
@@ -71,11 +107,15 @@ export default {
   name: "Generate",
   data() {
     return {
+      busy: false,
       contract: {},
       contracts: {},
       selectCompilers: [],
-      selectedCompiler: "v0.5.0-stable-2018.11.13",
-      progress: ""
+      selectedCompiler: "v0.5.2-stable-2018.12.19",
+      progress: "",
+      generatedServiceText: "",
+      generatedInterfaceText: "",
+      namespace: "CustomNameSpace"
     };
   },
   async mounted() {
@@ -83,34 +123,61 @@ export default {
     this.selectCompilers = versions.map(x => ({ label: x, value: x }));
   },
   methods: {
+    clearGeneratedFields() {
+      this.generatedServiceText = "";
+      this.generatedInterfaceText = "";
+    },
+    async generateCode() {
+      try {
+        const contractCompiler = new ContractCompiler(
+          this.contract,
+          this.contracts,
+          this.namespace,
+          false,
+          false
+        );
+
+        this.clearGeneratedFields();
+        this.busy = true;
+        const result = await contractCompiler.generate(this.selectedCompiler);
+
+        this.generatedServiceText = result.generatedService;
+        this.generatedInterfaceText = result.generatedInterface;
+
+        this.$refs.uploaderMain.reset();
+        this.$refs.uploaderOther.reset();
+      } catch (e) {
+        console.log("Error !");
+        console.log(e);
+      } finally {
+        this.busy = false;
+      }
+    },
     uploadMainContract(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
 
-        // Wait till complete
+        const thiz = this;
+
         reader.onloadend = async e => {
           const content = e.target.result;
-          this.contract = {
+          thiz.contract = {
             filename: file.name,
             content
           };
-          console.log(this.contract);
 
-          const c = new ContractCompiler(
-            this.contract,
-            this.contracts,
-            "CustomNameSpace",
-            true,
-            true
+          console.log("uploadMainContract done");
+          console.log(
+            `Loading ${thiz.$refs.uploaderOther.files.length} extra files`
           );
-          const result = await c.generate(this.selectedCompiler);
-          console.log(result);
+          if (thiz.$refs.uploaderOther.files.length == 0) {
+            await thiz.generateCode();
+          }
 
           resolve(content);
         };
 
-        // Make sure to handle error states
-        reader.onerror = function(e) {
+        reader.onerror = e => {
           reject(e);
         };
 
@@ -123,17 +190,17 @@ export default {
         const reader = new FileReader();
 
         // Wait till complete
-        reader.onloadend = function(e) {
+        reader.onloadend = async e => {
           const content = e.target.result;
-          this.contracts = {};
-          this.contracts[file.name] = content;
-          console.log(this.contracts);
+          this.contracts[file.name.replace(".sol", "")] = content;
+
+          console.log(`Other contract ${file.name} is read`);
 
           resolve(content);
         };
 
         // Make sure to handle error states
-        reader.onerror = function(e) {
+        reader.onerror = e => {
           reject(e);
         };
 
@@ -141,20 +208,15 @@ export default {
         reader.readAsText(file);
       });
     },
+    async uploadContractsFinish() {
+      await this.generateCode();
+    },
     async OnClickGenerate() {
       this.contract = {};
       this.contracts = {};
+
       this.$refs.uploaderMain.upload();
-
-      console.log("here?");
-      //console.log(this.contract);
-
-      //this.contract.then((x) => console.log(x));
-
-      // const c = new ContractCompiler(undefined, this.contract, this.contracts);
-      // const result = c.generate();
-
-      // this.$refs.uploaderOther.upload();
+      this.$refs.uploaderOther.upload();
     }
   }
 };
