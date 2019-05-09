@@ -4,6 +4,7 @@ import DefaultLayout from './layouts/Default.vue';
 import Home from './views/Home.vue';
 import About from './views/About.vue';
 import Color from './views/Color.vue';
+import Generate from './views/Generate.vue';
 
 Vue.use(Router);
 
@@ -27,6 +28,11 @@ export default new Router({
           path: '/color',
           name: 'color',
           component: Color,
+        },
+        {
+          path: '/generate',
+          name: 'generate',
+          component: Generate,
         },
       ],
     },

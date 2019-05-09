@@ -15,9 +15,9 @@ export default {
   },
   computed: {
     x() {
-      return `test : ${this.msg}_${this.level}`
-    }
-  }
+      return `test : ${this.msg}_${this.level}`;
+    },
+  },
 };
 </script>
 
