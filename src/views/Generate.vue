@@ -1,7 +1,7 @@
 <template>
   <q-page padding>
     <p>
-      <b>Generate C# Classes and Interfaces</b>
+      <b>Generate C# Interfaces and Classes</b>
     </p>
 
     <div class="row">
@@ -102,6 +102,7 @@
 
 <script>
 import ContractCompiler from "../business/ContractCompiler";
+import Utils from "../business/utils";
 
 export default {
   name: "Generate",
@@ -112,9 +113,9 @@ export default {
       contracts: {},
       selectCompilers: [],
       selectedCompiler: "v0.5.2-stable-2018.12.19",
-      progress: "",
-      generatedServiceText: "",
-      generatedInterfaceText: "",
+      progress: String,
+      generatedServiceText: String,
+      generatedInterfaceText: String,
       namespace: "CustomNameSpace"
     };
   },
@@ -132,22 +133,21 @@ export default {
         const contractCompiler = new ContractCompiler(
           this.contract,
           this.contracts,
-          this.namespace,
-          false,
-          false
+          this.namespace
         );
 
         this.clearGeneratedFields();
         this.busy = true;
         const result = await contractCompiler.generate(this.selectedCompiler);
 
-        this.generatedServiceText = result.generatedService;
-        this.generatedInterfaceText = result.generatedInterface;
+        this.generatedServiceText = result.generatedService[this.contract.name];
+        this.generatedInterfaceText =
+          result.generatedInterface[this.contract.name];
 
         this.$refs.uploaderMain.reset();
         this.$refs.uploaderOther.reset();
       } catch (e) {
-        console.log("Error !");
+        console.log("Error !!!");
         console.log(e);
       } finally {
         this.busy = false;
@@ -157,21 +157,20 @@ export default {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
 
-        const thiz = this;
-
         reader.onloadend = async e => {
           const content = e.target.result;
-          thiz.contract = {
+          this.contract = {
             filename: file.name,
+            name: Utils.sanitizeFilename(file.name),
             content
           };
 
           console.log("uploadMainContract done");
           console.log(
-            `Loading ${thiz.$refs.uploaderOther.files.length} extra files`
+            `Loading ${this.$refs.uploaderOther.files.length} extra files`
           );
-          if (thiz.$refs.uploaderOther.files.length == 0) {
-            await thiz.generateCode();
+          if (this.$refs.uploaderOther.files.length == 0) {
+            await this.generateCode();
           }
 
           resolve(content);
@@ -192,7 +191,7 @@ export default {
         // Wait till complete
         reader.onloadend = async e => {
           const content = e.target.result;
-          this.contracts[file.name.replace(".sol", "")] = content;
+          this.contracts[Utils.sanitizeFilename(file.name)] = content;
 
           console.log(`Other contract ${file.name} is read`);
 

@@ -1,25 +1,13 @@
 /* eslint-disable import/no-webpack-loader-syntax */
 import ejsTemplateService from '!raw-loader!./cs-service.ejs';
 import ejsTemplateInterface from '!raw-loader!./cs-service-interface.ejs';
+import Utils from './utils';
 
 const ejs = require('ejs');
 const solc = require('solcjs-lightweight');
-// const solc = require('solc-js');
-// const solc = require('solcjs-core');
-
-const resolveGithub = require('resolve-github');
-
-const ResolverEngine = require('solc-resolver').resolverEngine;
-
-const resolverEngine = new ResolverEngine();
-resolverEngine.addResolver(resolveGithub);
-
-const path = require('path');
-
-
 
 class ContractCompiler {
-  constructor(mainContract, otherContracts, preferredNamespace, generateAllInterfacesAndImplementations, combineContracts) {
+  constructor(mainContract, otherContracts, preferredNamespace, generateAllInterfacesAndImplementations = true, combineContracts = true) {
     this.mainContract = mainContract;
     this.otherContracts = otherContracts;
     this.preferredNamespace = preferredNamespace;
@@ -27,38 +15,23 @@ class ContractCompiler {
     this.combineContracts = combineContracts;
 
     this.combinedContractContent = '';
-    this.generatedService = '';
-    this.generatedInterface = '';
+    this.generatedService = {};
+    this.generatedInterface = {};
   }
 
   static async getVersions() {
-    const uri = 'https://github.com/OpenZeppelin/openzeppelin-solidity/contracts/math/SafeMath.sol';
-    const content = await resolverEngine.require(uri);
-    console.log(content);
-
     const select = await solc.versions();
     return select.releases;
-    // const a = [];
-    // a.push('v0.5.2-stable-2018.12.19');
-
-    // return a;
   }
 
   async generate(compilerVersion) {
     console.log(`generate using compiler ${compilerVersion}`);
 
-    // const compiler = await solc(compilerVersion);
     const compiler = await solc(compilerVersion);
     console.log(`Compiling contracts with solc version '${compiler.version.name}'`);
 
-    // const getImportContent = async (p) => {
-    //   await resolverEngine.require(p);
-    // };
-
-    // const output = await compiler(this.mainContract.content, getImportContent);
-
     const output = await compiler(this.mainContract.content, async (contractFilename) => {
-      const contractName = this.sanitizeFilename(contractFilename);
+      const contractName = Utils.sanitizeFilename(contractFilename);
       console.log(`Resolving contract '${contractFilename}' (${contractName})`);
 
       const contractContent = this.otherContracts[contractName];
@@ -67,9 +40,7 @@ class ContractCompiler {
         this.combinedContractContent = `${this.combinedContractContent}${this.stripContractContent(contractContent)}`;
       }
 
-      return {
-        contents: contractContent
-      };
+      return contractContent;
     });
 
     if (this.generateAllInterfacesAndImplementations) {
@@ -86,25 +57,6 @@ class ContractCompiler {
     };
   }
 
-  sanitizeFilename(contractFilename) {
-    return path.basename(contractFilename).replace('.sol', '');
-  }
-
-  // solidityResolveImport(contractFilename) {
-  //   const contractName = this.sanitizeFilename(contractFilename);
-  //   console.log(`Resolving contract '${contractFilename}' (${contractName})`);
-
-  //   const contractContent = this.otherContracts[contractName];
-
-  //   if (this.combineContracts) {
-  //     this.combinedContractContent = `${this.combinedContractContent}${this.stripContractContent(contractContent)}`;
-  //   }
-
-  //   return {
-  //     contents: contractContent
-  //   };
-  // }
-
   generateContractService(contractName, ns, abi, bytecode) {
     const combinedInput = {
       _contractName: contractName,
@@ -115,11 +67,11 @@ class ContractCompiler {
 
     console.log(`${contractName}: generate C# interface(s)`);
     const templateInterface = ejs.compile(ejsTemplateInterface);
-    this.generatedInterface = templateInterface(combinedInput);
+    this.generatedInterface[contractName] = templateInterface(combinedInput);
 
     console.log(`${contractName}: generate C# implementation(s)`);
     const templateService = ejs.compile(ejsTemplateService);
-    this.generatedService = templateService(combinedInput);
+    this.generatedService[contractName] = templateService(combinedInput);
   }
 
   generateFilesForContract(contract) {
