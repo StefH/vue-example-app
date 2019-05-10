@@ -25,7 +25,7 @@ class ContractCompiler {
   }
 
   async generate(compilerVersion) {
-    console.log(`generate using compiler ${compilerVersion}`);
+    console.log(`Generate using compiler ${compilerVersion}`);
 
     const compiler = await solc(compilerVersion);
     console.log(`Compiling contracts with solc version '${compiler.version.name}'`);
@@ -34,7 +34,7 @@ class ContractCompiler {
       const contractName = Utils.sanitizeFilename(contractFilename);
       console.log(`Resolving contract '${contractFilename}' (${contractName})`);
 
-      const contractContent = this.otherContracts[contractName];
+      const contractContent = this.otherContracts[contractName] || 'ERROR !!!';
 
       if (this.combineContracts) {
         this.combinedContractContent = `${this.combinedContractContent}${this.stripContractContent(contractContent)}`;

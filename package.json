@@ -10,9 +10,9 @@
     "test:unit": "vue-cli-service test:unit"
   },
   "dependencies": {
-    "browser-solc": "^1.0.0",
     "core-js": "^2.6.5",
     "ejs": "^2.6.1",
+    "file-saver": "^2.0.1",
     "lodash": "^4.17.11",
     "path": "^0.12.7",
     "quasar": "^1.0.0-beta.23",

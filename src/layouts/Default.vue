@@ -12,8 +12,8 @@
         />
 
         <q-toolbar-title>
-          Quasar App
-          <div slot="subtitle">Running on Quasar v{{ $q.version }}</div>
+          Nethereum-CodeGenerator
+          <div slot="subtitle">Running on Quasar Framework v{{ $q.version }}</div>
         </q-toolbar-title>
       </q-toolbar>
     </q-layout-header>
@@ -24,18 +24,14 @@
     >
       <q-list no-border link inset-delimiter>
         <q-list no-border link inset-delimiter>
-          <q-list-header>Navigation</q-list-header>
-          <q-item to="/" exact>
-            <q-item-side icon="home"/>
-            <q-item-main label="Home"/>
+          <q-list-header>Menu</q-list-header>
+          <q-item to="/generate">
+            <q-item-side icon="settings"/>
+            <q-item-main label="Generate"/>
           </q-item>
           <q-item to="/about">
-            <q-item-side icon="info_outline"/>
+            <q-item-side icon="info"/>
             <q-item-main label="About"/>
-          </q-item>
-          <q-item to="/generate">
-            <q-item-side icon="info_outline"/>
-            <q-item-main label="Generate"/>
           </q-item>
         </q-list>
       </q-list>
